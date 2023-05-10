@@ -121,7 +121,7 @@ def list_commands():
     print("train\t\t: Train the model")
     print("error\t\t: Calculate the error of the current model")
     print("plot\t\t: Generate plots")
-    print("create\t\t: Create a new dataset")
+    print("create\t\t: Create a new dataset (note: this will reset training data)")
     print("exit\t\t: Exit the program")
     input("Press enter to continue...")
 
@@ -255,6 +255,7 @@ def main():
                 csv = create_dataset()
                 intercept = 0
                 slope = 0
+                lr = 0.1
             elif command == "exit":
                 sys.exit(0)
             else:
