@@ -2,6 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import sys
 import math
+import random
 
 
 def estimate_price(mileage, intercept, slope):
@@ -37,15 +38,14 @@ def train(csv, intercept, slope, lr, epochs):
     """Normalize data, do the requested iterations of training and return the new theta values."""
     kms = csv.iloc[:, 0]
     xmax = max(kms)
-    kms /= xmax
 
     prices = csv.iloc[:, 1]
     ymax = max(prices)
-    prices /= ymax
 
     intercept /= ymax
     slope *= ymax / xmax
-    values = list(zip(kms, prices))
+    values = list(zip(kms / xmax, prices / ymax))
+
     for n in range(epochs):
         delta_intercept, delta_slope = train_once(values, intercept, slope, lr)
         intercept -= delta_intercept
@@ -90,7 +90,7 @@ def plot_data(csv, intercept, slope):
     y_values = [intercept, (slope*xmax + intercept)]
     plt.plot(x_values, y_values, color="red", )
     plt.xlabel = "price [€]"
-    plt.zlabel = "mileage [km]"
+    plt.ylabel = "mileage [km]"
     plt.show()
 
 
@@ -121,6 +121,7 @@ def list_commands():
     print("train\t\t: Train the model")
     print("error\t\t: Calculate the error of the current model")
     print("plot\t\t: Generate plots")
+    print("create\t\t: Create a new dataset")
     print("exit\t\t: Exit the program")
     input("Press enter to continue...")
 
@@ -128,11 +129,94 @@ def list_commands():
 def calc_error(csv, intercept, slope):
     """Calculate and display the Root Relative Squared Error (RRSE) of the current model."""
     mean = sum([n[1] for n in csv.values]) / len(csv.values)
-    square_error = sum([(estimate_price(n[0], intercept, slope) - n[1])**2 for n in csv.values])
-    square_mean_distance = sum([(mean - n[1])**2 for n in csv.values])
+    print(mean)
+    square_error = sum([(n[1] - estimate_price(n[0], intercept, slope))**2 for n in csv.values])
+    square_mean_distance = sum([(n[1] - mean)**2 for n in csv.values])
     RRSE = math.sqrt((square_error / square_mean_distance))
     print(f"\nRoot Relative Squared Error: {RRSE*100:.2f}%")
     input("Press enter to continue...")
+
+
+def get_new_price():
+    """Prompts for and returns the price for a car with zero mileage for the new dataset."""
+    line = ""
+    while line == "":
+        try:
+            line = input("Enter price of new car in €: ")
+            new_price = float(line)
+            assert new_price > 0, "Please enter a positive float value."
+        except ValueError:
+            print(f"'{line}' is not a valid float.")
+            line = ""
+        except AssertionError as msg:
+            print(msg)
+            line = ""
+    return new_price
+
+
+def get_zero_mileage():
+    """Prompts for and returns the mileage at which the price of a car reaches zero for the new dataset."""
+    line = ""
+    while line == "":
+        try:
+            line = input("Enter the mileage (in km) at which the price reaches 0: ")
+            zero_mileage = float(line)
+            assert zero_mileage > 0, "Please enter a positive float value."
+        except ValueError:
+            print(f"'{line}' is not a valid float.")
+            line = ""
+        except AssertionError as msg:
+            print(msg)
+            line = ""
+    return zero_mileage
+
+
+def get_n_values():
+    """Prompts for and returns the desired number of values for the new dataset."""
+    line = ""
+    while line == "":
+        try:
+            line = input("Enter number of values: ")
+            n_values = int(line)
+            assert n_values > 1, "Please enter an integer larger than 1."
+        except ValueError:
+            print(f"'{line}' is not a valid integer.")
+            line = ""
+        except AssertionError as msg:
+            print(msg)
+            line = ""
+    return n_values
+
+
+def get_spread():
+    """Prompts for and returns the spread for the new dataset."""
+    line = ""
+    while line == "":
+        try:
+            line = input("Enter spread (between 0 and 1): ")
+            spread = float(line)
+            assert 0 <= spread <= 1, "Please enter a value between 0 and 1."
+        except ValueError:
+            print(f"'{line}' is not a valid float.")
+            line = ""
+        except AssertionError as msg:
+            print(msg)
+            line = ""
+    return spread
+
+
+def create_dataset():
+    """Create a new custom dataset"""
+    new_price = get_new_price()
+    zero_mileage = get_zero_mileage()
+    n_values = get_n_values()
+    spread = get_spread()
+    x_values = [(n * zero_mileage) / n_values for n in range(n_values)]
+    y_values = [new_price * ((zero_mileage - n) / zero_mileage) for n in x_values]
+    y_values = [n + random.uniform(-spread, spread) * new_price for n in y_values]
+    df = pd.DataFrame({"km": x_values, "price": y_values})
+    input("Press enter to continue...")
+    return df
 
 
 def main():
@@ -167,6 +251,10 @@ def main():
                 lr = change_lr(lr)
             elif command == "error":
                 calc_error(csv, intercept, slope)
+            elif command == "create":
+                csv = create_dataset()
+                intercept = 0
+                slope = 0
             elif command == "exit":
                 sys.exit(0)
             else:
