@@ -129,11 +129,10 @@ def list_commands():
 def calc_error(csv, intercept, slope):
     """Calculate and display the Root Relative Squared Error (RRSE) of the current model."""
     mean = sum([n[1] for n in csv.values]) / len(csv.values)
-    print(mean)
     square_error = sum([(n[1] - estimate_price(n[0], intercept, slope))**2 for n in csv.values])
     square_mean_distance = sum([(n[1] - mean)**2 for n in csv.values])
     RRSE = math.sqrt((square_error / square_mean_distance))
-    print(f"\nRoot Relative Squared Error: {RRSE*100:.2f}%")
+    print(f"\nRoot Relative Squared Error (RRSE) of the current model: {RRSE*100:.2f}%")
     input("Press enter to continue...")
 
 
