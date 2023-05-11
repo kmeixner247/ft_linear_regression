@@ -268,11 +268,15 @@ def main():
         print()
         sys.exit()
     except FileNotFoundError:
-        print(f"FileNotFoundError: '{path}' is not a valid file path")
+        print(f"FileNotFoundError: '{path}' is not a valid file path.")
     except pd.errors.ParserError:
-        print(f"Parser Error: Error while parsing '{path}'")
+        print(f"Parser Error: Error while parsing '{path}'.")
     except ZeroDivisionError:
         print("ZeroDivisionError: Please check if the data file is correct.")
+    except PermissionError as msg:
+        print(f"PermissionError: {msg}.")
+    except Exception as msg:
+        print(f"Unexpected Error: {msg}.")
 
 
 if __name__ == "__main__":
